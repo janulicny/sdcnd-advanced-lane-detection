@@ -1,3 +1,8 @@
+## RESUBMIT changes overview
+1. Change yellow filter from HLS space to Lab colorspace.
+2. Rectify the equation for lane centering calculation.
+3. Implement smoothing over 10 frames.
+
 ## Writeup Template
 
 
@@ -66,7 +71,7 @@ I used a color threshold filter in HLS space to generate a binary image. The cod
 1. Convert the image from RGB to HLS colorspace.
 2. Segment the lane markings.
   1. Usually the white and yellow are the brightest colors in the image and we can just threshold for high values in _lightness_ component.
-  2. But I ran into trouble with yellow detection in dark or very light images. So another branch just for yellow is needed. We threshold in _saturation_ component, but we also assume that the lane is fairly bright, so we demand _lightness_ to be over certain value. (There are no yellow lanes on the example image, but you can see that the yellow road signs were selected.)
+  2. But I ran into trouble with yellow detection in dark or very light images. So another branch just for yellow is needed. We threshold in _b_ channel of _Lab_ colorspace for high values.
   3. Combine the two filters with `or` operator.
 3. Morphological operation _Closing_ is performed to get rid of small holes in the detected lanes.
 4. Keep only region of interest. The detection area is defined with a trapezoid with following vortices:
@@ -89,10 +94,10 @@ First, I needed to search for appropriate source and destination points for the 
 I chose to implement the source and destination points independently on the image size in the following manner:
 
 ```python
-top = int(0.6*img.shape[0])
+top = int(0.62*img.shape[0])
 src = np.float32(np.array([[int(0.16*img.shape[1]),img.shape[0]],
-                [int(0.486*img.shape[1]), top], 
-                [int(0.514*img.shape[1]), top], 
+                [int(0.47*img.shape[1]), top], 
+                [int(0.53*img.shape[1]), top], 
                 [int(0.86*img.shape[1]),img.shape[0]]]))
 dst = np.float32(np.array([[int(0.3*img.shape[1]),img.shape[0]],
                 [int(0.3*img.shape[1]), 0], 
@@ -104,10 +109,10 @@ This resulted in the following source and destination points for 1280x720 images
 
 | Source        | Destination   | 
 |:-------------:|:-------------:| 
-| 622, 432      | 384, 0        | 
-| 205, 720      | 384, 720      |
+| 601, 446     | 384, 0        | 
+| 204, 720      | 384, 720      |
 | 1101, 720     | 896, 720      |
-| 658, 432      | 896, 0        |
+| 678, 446      | 896, 0        |
 
 
 The code for the birdview transform is contained in the code cell 7 of the IPython notebook located in "./P3-Advanced_lane_finding-submit.ipynb"
@@ -157,6 +162,8 @@ Here is an example of my result on a test image:
 
 #### 1. Provide a link to your final video output.  Your pipeline should perform reasonably well on the entire project video (wobbly lines are ok but no catastrophic failures that would cause the car to drive off the road!).
 
+The pipeline for videos incorporates smoothing over 10 frames for increased robustness in difficult frames.
+
 Here's a [link to my video result](./project_video_output.mp4)
 
 ---
@@ -171,7 +178,6 @@ Here's a [link to my video result](./project_video_output.mp4)
   * add gradient filter
 
 * jerky behavior in videos
-  * implement memory of past lanes
   * assume that new lane position shall not move much in respect to the old one
 
 * lanes outside of the region of interest (e.g. crossing lanes, driving up/downhill, etc.)
