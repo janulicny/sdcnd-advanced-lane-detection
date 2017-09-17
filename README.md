@@ -1,7 +1,8 @@
 ## RESUBMIT changes overview
-1. Change yellow filter from HLS space to Lab colorspace.
-2. Rectify the equation for lane centering calculation.
-3. Implement smoothing over 10 frames.
+1. Changed yellow filter from HLS space to Lab colorspace.
+2. Made the area for birdview transform shorter, so it doesn't go over horizon.
+3. Changed the equation for lane centering calculation.
+4. Implemented smoothing over 10 frames in videos.
 
 ## Writeup Template
 
